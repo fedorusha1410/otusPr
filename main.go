@@ -6,4 +6,5 @@ import (
 
 func main() {
 	fmt.Println("First homework is here!")
+	fmt.Println("Second homework is here!!")
 }
