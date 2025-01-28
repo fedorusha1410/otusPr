@@ -37,7 +37,6 @@ func GetChessBoard(size int) string {
 }
 
 func main() {
-
 	board := GetChessBoard(8)
 	fmt.Print(board)
 
