@@ -2,43 +2,41 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 func GetChessBoard(size int) string {
 	if size <= 0 {
-		fmt.Println("Size cannot be less or equal 0")
+		return "Size cannot be less or equal 0"
 	}
 
 	white := " "
 	black := "#"
-	result := ""
-	emptyMatrix := make([][]string, size)
-
-	for i := range emptyMatrix {
-		emptyMatrix[i] = make([]string, size)
-	}
+	var result strings.Builder
 
 	for i := range size {
 		for j := range size {
 			if (i+j)%2 == 0 {
-				emptyMatrix[i][j] = white
+				result.WriteString(white)
 			} else {
-				emptyMatrix[i][j] = black
+				result.WriteString(black)
 			}
-
-			result += emptyMatrix[i][j]
 		}
 
-		result += "\n"
+		result.WriteString("\n")
 	}
 
-	return result
+	return result.String()
 
 }
 
 func main() {
 
-	board := GetChessBoard(8)
-	fmt.Print(board)
+	var size int
+	fmt.Println("Enter the size of chess board: ")
+	fmt.Scanf("%d", &size)
+	fmt.Printf("You wrote %d\n", size)
+	board := GetChessBoard(size)
+	fmt.Println(board)
 
 }
