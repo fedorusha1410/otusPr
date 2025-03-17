@@ -10,7 +10,7 @@ type Role int
 
 const (
 	Creator Role = iota
-	Manager 
+	Manager
 )
 
 type User struct {
@@ -20,13 +20,14 @@ type User struct {
 	password string
 }
 
+func NewUser(name string, role Role, id int) User {
+	return User{Name: name, role: role, id: id}
+}
+
 func (user *User) SetRole(role Role) {
 	user.role = role
 }
 
-func NewUser(name string, role Role, id int) User {
-	return User{Name: name, role: role, id: id}
-}
 func (user *User) GetRole() Role {
 	return user.role
 }
