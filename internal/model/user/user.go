@@ -1,9 +1,8 @@
 package user
 
 import (
-	"crypto/sha1"
-	"encoding/base64"
 	"errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Role int
@@ -41,23 +40,24 @@ func (user *User) SetId(id int) int {
 	return user.id
 }
 
-func (user *User) SetPassword(password string) {
+func (user *User) SetPassword(password string) error {
 	passByBytes := []byte(password)
-	hasher := sha1.New()
-	hasher.Write(passByBytes)
-	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
-	user.password = sha
+
+	hashedPassword, err := bcrypt.GenerateFromPassword(passByBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("error of generate password hash")
+	}
+	user.password = string(hashedPassword)
+	return nil
 }
 
 func (user *User) ComaprePassword(password string) (string, error) {
 	passByBytes := []byte(password)
-	hasher := sha1.New()
-	hasher.Write(passByBytes)
-	encodedPass := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
-
-	if encodedPass == user.password {
-		return "password is correct", nil
-	} else {
+	err := bcrypt.CompareHashAndPassword([]byte(user.password), passByBytes)
+	if err != nil {
 		return "", errors.New("password is wrong")
+	} else {
+		return "password is correct", nil
 	}
+
 }
