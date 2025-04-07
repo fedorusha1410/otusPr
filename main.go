@@ -2,41 +2,34 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"otus/internal/model/user"
+	"otus/internal/repository"
+	"otus/internal/service"
+	"time"
 )
-
-func GetChessBoard(size int) string {
-	if size <= 0 {
-		return "Size cannot be less or equal 0"
-	}
-
-	white := " "
-	black := "#"
-	var result strings.Builder
-
-	for i := range size {
-		for j := range size {
-			if (i+j)%2 == 0 {
-				result.WriteString(white)
-			} else {
-				result.WriteString(black)
-			}
-		}
-
-		result.WriteString("\n")
-	}
-
-	return result.String()
-
-}
 
 func main() {
 
-	var size int
-	fmt.Println("Enter the size of chess board: ")
-	fmt.Scanf("%d", &size)
-	fmt.Printf("You wrote %d\n", size)
-	board := GetChessBoard(size)
-	fmt.Println(board)
+	repository := repository.New()
+	err := service.Create(&repository, 1, "Open", "Todo", "Need to do", time.Now(), "Medium", 12)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+	}
+	time.Sleep(1 * time.Second)
+	err = service.Create(&repository, "Petr", user.Manager, 3)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+	}
+	time.Sleep(1 * time.Second)
+	err = service.Create(&repository, 2, "Closed", "Todo", "Need to do", time.Now(), "Low", 12)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+	}
 
+	for _, value := range repository.Users {
+		fmt.Println(value)
+	}
+	for _, value := range repository.Tasks {
+		fmt.Println(value)
+	}
 }

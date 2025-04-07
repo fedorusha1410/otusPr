@@ -19,6 +19,10 @@ type User struct {
 	password string
 }
 
+func NewObject() User{
+	return User{}
+}
+
 func NewUser(name string, role Role, id int) User {
 	return User{Name: name, role: role, id: id}
 }
