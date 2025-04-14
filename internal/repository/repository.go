@@ -6,8 +6,8 @@ import (
 )
 
 type Repository struct {
-	Tasks []task.Task
-	Users []user.User
+	Tasks []*task.Task
+	Users []*user.User
 }
 
 func New() Repository {
@@ -17,8 +17,8 @@ func (repository *Repository) Save(param any) {
 
 	switch value := param.(type) {
 	case task.Task:
-		repository.Tasks = append(repository.Tasks, value)
+		repository.Tasks = append(repository.Tasks, &value)
 	case user.User:
-		repository.Users = append(repository.Users, value)
+		repository.Users = append(repository.Users, &value)
 	}
 }
