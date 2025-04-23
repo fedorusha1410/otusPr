@@ -3,7 +3,6 @@ package repository
 import (
 	"otus/internal/model/task"
 	"otus/internal/model/user"
-	"sync"
 )
 
 type Repository struct {
@@ -14,16 +13,12 @@ type Repository struct {
 func New() Repository {
 	return Repository{}
 }
-func (repository *Repository) Save(cwg *sync.WaitGroup, ch <-chan interface{}) {
+func (repository *Repository) Save(param any) {
 
-	defer cwg.Done()
-	for val := range ch {
-		switch value := val.(type) {
-		case task.Task:
-			repository.Tasks = append(repository.Tasks, &value)
-		case user.User:
-			repository.Users = append(repository.Users, &value)
-		}
-
+	switch value := param.(type) {
+	case task.Task:
+		repository.Tasks = append(repository.Tasks, &value)
+	case user.User:
+		repository.Users = append(repository.Users, &value)
 	}
 }

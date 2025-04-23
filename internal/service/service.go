@@ -1,14 +1,17 @@
 package service
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"otus/internal/model/task"
 	"otus/internal/model/user"
+	"otus/internal/repository"
+	"sync"
 	"time"
 )
 
 func Create(params ...any) (interface{}, error) {
-
 	if len(params) == 3 {
 		result := user.NewUser(params[0].(string), params[1].(user.Role), params[2].(int))
 		return result, nil
@@ -22,4 +25,22 @@ func Create(params ...any) (interface{}, error) {
 	}
 
 	return nil, errors.New("error of create struct, incorrect number of input parameters")
+}
+
+func Add(ctx context.Context, cwg *sync.WaitGroup, ch <-chan interface{}, done <-chan struct{}, rep *repository.Repository) {
+
+	defer cwg.Done()
+
+	for {
+		select {
+		case <-done:
+			fmt.Println("Goroutine 'Add' finished as usual")
+			return
+		case <-ctx.Done():
+			fmt.Println("Goroutine 'Add' is done")
+			return
+		case result := <-ch:
+			rep.Save(result)
+		}
+	}
 }
