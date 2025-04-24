@@ -10,6 +10,14 @@ type Repository struct {
 	Users []*user.User
 }
 
+func (repository *Repository) GetTasks() []*task.Task {
+	return repository.Tasks
+}
+
+func (repository *Repository) GetUsers() []*user.User {
+	return repository.Users
+}
+
 func New() Repository {
 	return Repository{}
 }

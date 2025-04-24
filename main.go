@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"otus/internal/logger"
 	"otus/internal/model/user"
 	"otus/internal/repository"
 	"otus/internal/service"
@@ -28,77 +29,45 @@ func main() {
 	var pwg sync.WaitGroup // producer
 	var cwg sync.WaitGroup //consumer
 
-	done := make(chan struct{})
 	ch := make(chan interface{})
 	repository := repository.New()
 
 	cwg.Add(1)
-	go service.Add(ctx, &cwg, ch, done, &repository)
+	go service.Add(ctx, &cwg, ch, &repository)
+	go logger.LogChanges(&repository)
 
 	pwg.Add(1)
+
 	go func() {
 		defer pwg.Done()
-
-		select {
-		case <-ctx.Done():
-			fmt.Println("Goroutine 'Create' is done")
-			return
-		case <-time.After(3 * time.Second):
-			obj, err := service.Create(1, "Open", "Todo", "Need to do", time.Now(), "Medium", 12)
-			if err != nil {
-				fmt.Printf("error: %v", err)
+		i := 0
+		for {
+			i++
+			select {
+			case <-ctx.Done():
+				fmt.Println("Goroutine 'Create' is done")
 				return
+			case <-time.After(3 * time.Second):
+				obj, err := service.Create(i, "Closed", fmt.Sprintf("Test №%d", i), "Need to do", time.Now(), "Low", i)
+				if err != nil {
+					fmt.Printf("error: %v", err)
+					return
+				}
+				ch <- obj
+				obj, err = service.Create(fmt.Sprintf("Test №%d", i), user.Manager, i)
+
+				if err != nil {
+					fmt.Printf("error: %v", err)
+					return
+				}
+				ch <- obj
+
 			}
-			ch <- obj
+
 		}
 	}()
 
-	pwg.Add(1)
-	go func() {
-		defer pwg.Done()
-		select {
-		case <-ctx.Done():
-			fmt.Println("Goroutine 'Create' is done")
-			return
-		case <-time.After(5 * time.Second):
-			obj, err := service.Create("Petr", user.Manager, 3)
-			if err != nil {
-				fmt.Printf("error: %v", err)
-				return
-			}
-			ch <- obj
-		}
-	}()
-
-	pwg.Add(1)
-	go func() {
-		defer pwg.Done()
-
-		select {
-		case <-ctx.Done():
-			fmt.Println("Goroutine 'Create' is done")
-			return
-		case <-time.After(7 * time.Second):
-			obj, err := service.Create(2, "Closed", "Todo", "Need to do", time.Now(), "Low", 12)
-			if err != nil {
-				fmt.Printf("error: %v", err)
-				return
-			}
-			ch <- obj
-		}
-	}()
-
-	go func() {
-		pwg.Wait()
-		done <- struct{}{}
-	}()
-
+	pwg.Wait()
 	cwg.Wait()
 
-	for _, value := range repository.Users {
-		fmt.Println(value)
-	}
-	for _, value := range repository.Tasks {
-		fmt.Println(value)
-	}
 }

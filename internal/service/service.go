@@ -27,15 +27,12 @@ func Create(params ...any) (interface{}, error) {
 	return nil, errors.New("error of create struct, incorrect number of input parameters")
 }
 
-func Add(ctx context.Context, cwg *sync.WaitGroup, ch <-chan interface{}, done <-chan struct{}, rep *repository.Repository) {
+func Add(ctx context.Context, cwg *sync.WaitGroup, ch <-chan interface{}, rep *repository.Repository) {
 
 	defer cwg.Done()
 
 	for {
 		select {
-		case <-done:
-			fmt.Println("Goroutine 'Add' finished as usual")
-			return
 		case <-ctx.Done():
 			fmt.Println("Goroutine 'Add' is done")
 			return
