@@ -34,7 +34,7 @@ func main() {
 
 	cwg.Add(1)
 	go service.Add(ctx, &cwg, ch, &repository)
-	go logger.LogChanges(&repository)
+	go logger.LogChanges(ctx, &repository)
 
 	pwg.Add(1)
 
