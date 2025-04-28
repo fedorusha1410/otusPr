@@ -26,20 +26,17 @@ func main() {
 		cancel()
 	}()
 
-	var pwg sync.WaitGroup // producer
-	var cwg sync.WaitGroup //consumer
+	var wg sync.WaitGroup
 
 	ch := make(chan interface{})
 	repository := repository.New()
 
-	cwg.Add(1)
-	go service.Add(ctx, &cwg, ch, &repository)
+	wg.Add(2)
+	go service.Add(ctx, &wg, ch, &repository)
 	go logger.LogChanges(ctx, &repository)
 
-	pwg.Add(1)
-
 	go func() {
-		defer pwg.Done()
+		defer wg.Done()
 		i := 0
 		for {
 			i++
@@ -67,7 +64,5 @@ func main() {
 		}
 	}()
 
-	pwg.Wait()
-	cwg.Wait()
-
+	wg.Wait()
 }

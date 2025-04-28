@@ -27,9 +27,9 @@ func Create(params ...any) (interface{}, error) {
 	return nil, errors.New("error of create struct, incorrect number of input parameters")
 }
 
-func Add(ctx context.Context, cwg *sync.WaitGroup, ch <-chan interface{}, rep *repository.Repository) {
+func Add(ctx context.Context, wg *sync.WaitGroup, ch <-chan interface{}, rep *repository.Repository) {
 
-	defer cwg.Done()
+	defer wg.Done()
 
 	for {
 		select {
