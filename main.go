@@ -1,35 +1,68 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"otus/internal/logger"
 	"otus/internal/model/user"
 	"otus/internal/repository"
 	"otus/internal/service"
+	"sync"
+	"syscall"
 	"time"
 )
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
 
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		fmt.Println("Ending of app...")
+		cancel()
+	}()
+
+	var wg sync.WaitGroup
+
+	ch := make(chan interface{})
 	repository := repository.New()
-	err := service.Create(&repository, 1, "Open", "Todo", "Need to do", time.Now(), "Medium", 12)
-	if err != nil {
-		fmt.Printf("error: %v", err)
-	}
-	time.Sleep(1 * time.Second)
-	err = service.Create(&repository, "Petr", user.Manager, 3)
-	if err != nil {
-		fmt.Printf("error: %v", err)
-	}
-	time.Sleep(1 * time.Second)
-	err = service.Create(&repository, 2, "Closed", "Todo", "Need to do", time.Now(), "Low", 12)
-	if err != nil {
-		fmt.Printf("error: %v", err)
-	}
 
-	for _, value := range repository.Users {
-		fmt.Println(value)
-	}
-	for _, value := range repository.Tasks {
-		fmt.Println(value)
-	}
+	wg.Add(2)
+	go service.Add(ctx, &wg, ch, &repository)
+	go logger.LogChanges(ctx, &repository)
+
+	go func() {
+		defer wg.Done()
+		i := 0
+		for {
+			i++
+			select {
+			case <-ctx.Done():
+				fmt.Println("Goroutine 'Create' is done")
+				return
+			case <-time.After(3 * time.Second):
+				obj, err := service.Create(i, "Closed", fmt.Sprintf("Test №%d", i), "Need to do", time.Now(), "Low", i)
+				if err != nil {
+					fmt.Printf("error: %v", err)
+					return
+				}
+				ch <- obj
+				obj, err = service.Create(fmt.Sprintf("Test №%d", i), user.Manager, i)
+
+				if err != nil {
+					fmt.Printf("error: %v", err)
+					return
+				}
+				ch <- obj
+
+			}
+
+		}
+	}()
+
+	wg.Wait()
 }
