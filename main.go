@@ -30,6 +30,7 @@ func main() {
 
 	ch := make(chan interface{})
 	repository := repository.New()
+	repository.Restore()
 
 	wg.Add(2)
 	go service.Add(ctx, &wg, ch, &repository)
@@ -37,7 +38,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		i := 0
+		i := len(repository.Tasks)
 		for {
 			i++
 			select {
