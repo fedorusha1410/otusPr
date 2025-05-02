@@ -14,6 +14,7 @@ import (
 func Create(params ...any) (interface{}, error) {
 	if len(params) == 3 {
 		result := user.NewUser(params[0].(string), params[1].(user.Role), params[2].(int))
+		
 		return result, nil
 	}
 	if len(params) == 7 {
@@ -38,6 +39,8 @@ func Add(ctx context.Context, wg *sync.WaitGroup, ch <-chan interface{}, rep *re
 			return
 		case result := <-ch:
 			rep.Save(result)
+			rep.SaveTaskInFile()
+			rep.SaveUserInFile()
 		}
 	}
 }

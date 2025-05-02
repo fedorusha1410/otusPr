@@ -30,14 +30,18 @@ func main() {
 
 	ch := make(chan interface{})
 	repository := repository.New()
+	repository.Restore()
+
+	initialTaskLen := len(repository.GetTasks())
+	initialUserLen := len(repository.GetUsers())
 
 	wg.Add(2)
 	go service.Add(ctx, &wg, ch, &repository)
-	go logger.LogChanges(ctx, &repository)
+	go logger.LogChanges(ctx, &repository, initialTaskLen, initialUserLen)
 
 	go func() {
 		defer wg.Done()
-		i := 0
+		i := len(repository.Tasks)
 		for {
 			i++
 			select {
