@@ -89,7 +89,6 @@ func (repository *Repository) Restore() {
 			fmt.Println("error decoding existing tasks: %w", err)
 		}
 	}
-	fmt.Println("Loaded tasks:", len(repository.Tasks))
 
 	defer fileTask.Close()
 
@@ -115,7 +114,6 @@ func (repository *Repository) Restore() {
 			fmt.Println("error decoding existing users: %w", err)
 		}
 	}
-	fmt.Println("Loaded users:", len(repository.Users))
 
 	defer fileUser.Close()
 }
