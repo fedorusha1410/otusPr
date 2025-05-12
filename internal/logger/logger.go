@@ -8,8 +8,10 @@ import (
 	"time"
 )
 
-func LogChanges(ctx context.Context, repo *repository.Repository) {
-	var prevTaskLen, prevUserLen int
+func LogChanges(ctx context.Context, repo *repository.Repository, initialTaskLen, initialUserLen int) {
+	prevTaskLen := initialTaskLen
+	prevUserLen := initialUserLen
+
 	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()
 
