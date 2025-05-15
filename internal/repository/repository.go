@@ -16,6 +16,10 @@ type Repository struct {
 	Users []*user.User
 }
 
+func New() Repository {
+	return Repository{}
+}
+
 func (repository *Repository) GetTasks() []*task.Task {
 	return repository.Tasks
 }
@@ -24,9 +28,64 @@ func (repository *Repository) GetUsers() []*user.User {
 	return repository.Users
 }
 
-func New() Repository {
-	return Repository{}
+func (repository *Repository) GetUserById(id int) *user.User {
+
+	for _, user := range repository.Users {
+		if user.Id == id {
+			return user
+		}
+	}
+	return nil
 }
+
+func (repository *Repository) GetTaskById(id int) *task.Task {
+
+	for _, task := range repository.Tasks {
+		if task.Id == id {
+			return task
+		}
+	}
+	return nil
+}
+
+func (repository *Repository) UpdateUser(id int, newData *user.User) {
+
+	for _, user := range repository.Users {
+		if user.Id == id {
+			user.Name = newData.Name
+			user.Role = newData.Role
+		}
+	}
+}
+
+func (repository *Repository) UpdateTask(id int, newData *task.Task) {
+
+	for _, task := range repository.Tasks {
+		if task.Id == id {
+			task.Note = newData.Note
+			task.Priority = newData.Priority
+		}
+	}
+}
+
+func (repository *Repository) DeleteUser(id int) {
+
+	for i, user := range repository.Users {
+		if user.Id == id {
+			repository.Users = append(repository.Users[:i], repository.Users[i+1:]...)
+		}
+	}
+}
+
+func (repository *Repository) DeleteTask(id int) {
+
+	for i, task := range repository.Tasks {
+		if task.Id == id {
+			repository.Tasks = append(repository.Tasks[:i], repository.Tasks[i+1:]...)
+		}
+	}
+}
+
 func (repository *Repository) Save(param any) {
 
 	switch value := param.(type) {
