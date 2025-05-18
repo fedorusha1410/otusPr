@@ -1,72 +1,65 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"os/signal"
-	"otus/internal/logger"
-	"otus/internal/model/user"
+	"net/http"
+	"otus/internal/handler/taskHandler"
+	"otus/internal/handler/userHandler"
 	"otus/internal/repository"
-	"otus/internal/service"
-	"sync"
-	"syscall"
-	"time"
+	"strings"
 )
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		<-sigChan
-		fmt.Println("Ending of app...")
-		cancel()
-	}()
-
-	var wg sync.WaitGroup
-
-	ch := make(chan interface{})
 	repository := repository.New()
 	repository.Restore()
 
-	initialTaskLen := len(repository.GetTasks())
-	initialUserLen := len(repository.GetUsers())
+	http.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 
-	wg.Add(2)
-	go service.Add(ctx, &wg, ch, &repository)
-	go logger.LogChanges(ctx, &repository, initialTaskLen, initialUserLen)
+			if len(pathParts) == 1 {
+				userHandler.GetAll(w, r, &repository)
 
-	go func() {
-		defer wg.Done()
-		i := len(repository.Tasks)
-		for {
-			i++
-			select {
-			case <-ctx.Done():
-				fmt.Println("Goroutine 'Create' is done")
-				return
-			case <-time.After(3 * time.Second):
-				obj, err := service.Create(i, "Closed", fmt.Sprintf("Test №%d", i), "Need to do", time.Now(), "Low", i)
-				if err != nil {
-					fmt.Printf("error: %v", err)
-					return
-				}
-				ch <- obj
-				obj, err = service.Create(fmt.Sprintf("Test №%d", i), user.Manager, i)
-
-				if err != nil {
-					fmt.Printf("error: %v", err)
-					return
-				}
-				ch <- obj
-
+			} else if len(pathParts) == 2 {
+				userHandler.GetById(w, r, &repository)
+			} else {
+				http.Error(w, "Invalid URL", http.StatusBadRequest)
 			}
-
+		case http.MethodPost:
+			userHandler.Insert(w, r, &repository)
+		case http.MethodPut:
+			userHandler.Update(w, r, &repository)
+		case http.MethodDelete:
+			userHandler.Delete(w, r, &repository)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
-	}()
+	})
 
-	wg.Wait()
+	http.HandleFunc("/tasks/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+
+			if len(pathParts) == 1 {
+				taskHandler.GetAll(w, r, &repository)
+
+			} else if len(pathParts) == 2 {
+				taskHandler.GetById(w, r, &repository)
+			} else {
+				http.Error(w, "Invalid URL", http.StatusBadRequest)
+			}
+		case http.MethodPost:
+			taskHandler.Insert(w, r, &repository)
+		case http.MethodPut:
+			taskHandler.Update(w, r, &repository)
+		case http.MethodDelete:
+			taskHandler.Delete(w, r, &repository)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.ListenAndServe(":8090", nil)
 }
