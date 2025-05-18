@@ -27,7 +27,7 @@ func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repo
 	user := repo.GetUserById(userID)
 
 	if user == nil {
-		http.Error(w, "User not found", http.StatusBadRequest)
+		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

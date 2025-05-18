@@ -27,7 +27,7 @@ func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repo
 	task := repo.GetTaskById(taskID)
 
 	if task == nil {
-		http.Error(w, "Task not found", http.StatusBadRequest)
+		http.Error(w, "Task not found", http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
