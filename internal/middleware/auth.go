@@ -22,7 +22,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		var secretKey = []byte(os.Getenv("JWT_SECRET"))
 
 		if tokenString == authHeader {
-			http.Error(w, "Invalid Authorization format", http.StatusUnauthorized)
+			http.Error(w, "Invalid Authorization format", http.StatusBadRequest)
 			return
 		}
 
