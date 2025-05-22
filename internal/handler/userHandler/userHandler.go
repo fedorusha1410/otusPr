@@ -9,6 +9,15 @@ import (
 	"strings"
 )
 
+// Get User by id dosc
+// @Summary      Get User
+// @Description  Get User by ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {object}  user.User
+// @Router       /users/{id} [get]
 func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
@@ -34,6 +43,13 @@ func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repo
 	json.NewEncoder(w).Encode(user)
 }
 
+// @Summary      Get Users
+// @Description  Get All Users from file
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}  user.User
+// @Router       /users/ [get]
 func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 
 	users := repo.GetUsers()
@@ -41,6 +57,16 @@ func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 	json.NewEncoder(w).Encode(users)
 }
 
+// @Summary      Insert user
+// @Description  Insert user into slice and file
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      user.User  true  "User to create"
+// @Success      200   {object}  user.User
+// @Failure      400   {string}  string  "Invalid input"
+// @Router       /users/ [post]
+// @Security BearerAuth
 func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 
 	var newUser user.User
@@ -74,6 +100,17 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 	json.NewEncoder(w).Encode(newUser)
 }
 
+// @Summary      Update user by ID
+// @Description  Update user in slice and file
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int        true  "User ID"
+// @Param        user  body      user.User  true  "User to update"
+// @Success      200
+// @Failure      400   {string}  string  "Invalid input"
+// @Router       /users/{id} [put]
+// @Security BearerAuth
 func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
@@ -108,6 +145,16 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 
 }
 
+// @Summary      Delete user by ID
+// @Description  Delete user in slice and file
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200
+// @Failure      400  {string}  string  "Invalid input"
+// @Router       /users/{id} [delete]
+// @Security BearerAuth
 func Delete(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
@@ -133,5 +180,3 @@ func Delete(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		http.Error(w, "User with this ID doesnt exist", http.StatusBadRequest)
 	}
 }
-
-//

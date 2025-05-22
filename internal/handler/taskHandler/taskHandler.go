@@ -9,6 +9,15 @@ import (
 	"strings"
 )
 
+// Get Task by id dosc
+// @Summary      Get Task
+// @Description  Get Task by ID
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Task ID"
+// @Success      200  {object}  task.Task
+// @Router       /tasks/{id} [get]
 func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
@@ -34,6 +43,13 @@ func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repo
 	json.NewEncoder(w).Encode(task)
 }
 
+// @Summary      Get Tasks
+// @Description  Get All tasks from file
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}  task.Task
+// @Router       /tasks/ [get]
 func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 
 	tasks := repo.GetTasks()
@@ -41,6 +57,16 @@ func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 	json.NewEncoder(w).Encode(tasks)
 }
 
+// @Summary      Insert task
+// @Description  Insert task into file
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        task  body      task.Task  true  "Task to create"
+// @Success      200  {object}  task.Task
+// @Failure      400  {string}  string  "Invalid input"
+// @Router       /tasks/ [post]
+// @Security BearerAuth
 func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 
 	var newTask task.Task
@@ -79,6 +105,17 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 	json.NewEncoder(w).Encode(newTask)
 }
 
+// @Summary      Update task by ID
+// @Description  Update task in slice and file
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int        true  "Task ID"
+// @Param        task  body      task.Task  true  "Task to update"
+// @Success      200
+// @Failure      400  {string}  string  "Invalid input"
+// @Router       /tasks/{id} [put]
+// @Security BearerAuth
 func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
@@ -113,6 +150,16 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 
 }
 
+// @Summary      Delete task by ID
+// @Description  Delete task in slice and file
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Task ID"
+// @Success      200
+// @Failure      400  {string}  string  "Invalid input"
+// @Router       /tasks/{id} [delete]
+// @Security BearerAuth
 func Delete(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
