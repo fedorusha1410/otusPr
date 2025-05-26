@@ -107,7 +107,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/task.Task"
+                            "$ref": "#/definitions/dto.CreateTaskDto"
                         }
                     }
                 ],
@@ -115,7 +115,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/task.Task"
+                            "$ref": "#/definitions/dto.CreateTaskDto"
                         }
                     },
                     "400": {
@@ -189,7 +189,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/task.Task"
+                            "$ref": "#/definitions/dto.UpdateTaskDto"
                         }
                     }
                 ],
@@ -293,7 +293,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.User"
+                            "$ref": "#/definitions/dto.CreateUserDto"
                         }
                     }
                 ],
@@ -301,7 +301,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.User"
+                            "$ref": "#/definitions/dto.CreateUserDto"
                         }
                     },
                     "400": {
@@ -375,7 +375,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.User"
+                            "$ref": "#/definitions/dto.UpdateUserDto"
                         }
                     }
                 ],
@@ -432,7 +432,75 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateTaskDto": {
+            "type": "object",
+            "properties": {
+                "Id": {
+                    "type": "integer"
+                },
+                "Note": {
+                    "type": "string"
+                },
+                "Priority": {
+                    "type": "string"
+                },
+                "Status": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                },
+                "authorId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateUserDto": {
+            "type": "object",
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Role": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Login": {
+            "type": "object",
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateTaskDto": {
+            "type": "object",
+            "properties": {
+                "Note": {
+                    "type": "string"
+                },
+                "Priority": {
+                    "type": "string"
+                },
+                "Status": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateUserDto": {
             "type": "object",
             "properties": {
                 "Name": {

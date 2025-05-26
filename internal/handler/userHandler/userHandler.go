@@ -3,7 +3,7 @@ package userHandler
 import (
 	"encoding/json"
 	"net/http"
-	"otus/internal/model/user"
+	"otus/internal/dto"
 	"otus/internal/repository"
 	"strconv"
 	"strings"
@@ -62,14 +62,14 @@ func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        user  body      user.User  true  "User to create"
-// @Success      200   {object}  user.User
+// @Param        user  body      dto.CreateUserDto  true  "User to create"
+// @Success      200   {object}  dto.CreateUserDto
 // @Failure      400   {string}  string  "Invalid input"
 // @Router       /users/ [post]
 // @Security BearerAuth
 func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 
-	var newUser user.User
+	var newUser dto.CreateUserDto
 	err := json.NewDecoder(request.Body).Decode(&newUser)
 	if err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
@@ -92,8 +92,9 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		http.Error(w, "Ivalid user role", http.StatusBadRequest)
 		return
 	}
-
-	repo.Save(newUser)
+	user := dto.MapToUserModel(newUser)
+	user.SetPassword(newUser.Password)
+	repo.Save(&user)
 	repo.SaveUserInFile()
 
 	w.Header().Set("Content-Type", "application/json")
@@ -106,7 +107,7 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 // @Accept       json
 // @Produce      json
 // @Param        id    path      int        true  "User ID"
-// @Param        user  body      user.User  true  "User to update"
+// @Param        user  body      dto.UpdateUserDto  true  "User to update"
 // @Success      200
 // @Failure      400   {string}  string  "Invalid input"
 // @Router       /users/{id} [put]
@@ -126,7 +127,7 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-	var newUser user.User
+	var newUser dto.UpdateUserDto
 	err = json.NewDecoder(request.Body).Decode(&newUser)
 
 	if err != nil {
@@ -137,7 +138,9 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 	user := repo.GetUserById(userID)
 
 	if user != nil {
-		repo.UpdateUser(userID, &newUser)
+		user.Name = newUser.Name
+		user.SetPassword(newUser.Password)
+		repo.UpdateUser(userID, user)
 		repo.SaveUserInFile()
 	} else {
 		http.Error(w, "User with this ID doesnt exist", http.StatusBadRequest)

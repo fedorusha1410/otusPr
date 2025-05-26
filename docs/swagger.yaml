@@ -1,5 +1,49 @@
 definitions:
+  dto.CreateTaskDto:
+    properties:
+      Id:
+        type: integer
+      Note:
+        type: string
+      Priority:
+        type: string
+      Status:
+        type: string
+      Title:
+        type: string
+      authorId:
+        type: integer
+    type: object
+  dto.CreateUserDto:
+    properties:
+      Name:
+        type: string
+      Role:
+        type: integer
+      id:
+        type: integer
+      password:
+        type: string
+    type: object
   dto.Login:
+    properties:
+      Name:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.UpdateTaskDto:
+    properties:
+      Note:
+        type: string
+      Priority:
+        type: string
+      Status:
+        type: string
+      Title:
+        type: string
+    type: object
+  dto.UpdateUserDto:
     properties:
       Name:
         type: string
@@ -106,14 +150,14 @@ paths:
         name: task
         required: true
         schema:
-          $ref: '#/definitions/task.Task'
+          $ref: '#/definitions/dto.CreateTaskDto'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/task.Task'
+            $ref: '#/definitions/dto.CreateTaskDto'
         "400":
           description: Invalid input
           schema:
@@ -183,7 +227,7 @@ paths:
         name: task
         required: true
         schema:
-          $ref: '#/definitions/task.Task'
+          $ref: '#/definitions/dto.UpdateTaskDto'
       produces:
       - application/json
       responses:
@@ -225,14 +269,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/user.User'
+          $ref: '#/definitions/dto.CreateUserDto'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.User'
+            $ref: '#/definitions/dto.CreateUserDto'
         "400":
           description: Invalid input
           schema:
@@ -302,7 +346,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/user.User'
+          $ref: '#/definitions/dto.UpdateUserDto'
       produces:
       - application/json
       responses:

@@ -56,7 +56,7 @@ func (user *User) SetPassword(password string) error {
 	return nil
 }
 
-func (user *User) ComaprePassword(password string) (string, error) {
+func (user *User) ComparePassword(password string) (string, error) {
 	passByBytes := []byte(password)
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), passByBytes)
 	if err != nil {

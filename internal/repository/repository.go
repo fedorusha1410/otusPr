@@ -53,7 +53,6 @@ func (repository *Repository) UpdateUser(id int, newData *user.User) {
 	for _, user := range repository.Users {
 		if user.Id == id {
 			user.Name = newData.Name
-			user.Role = newData.Role
 		}
 	}
 }

@@ -3,10 +3,11 @@ package taskHandler
 import (
 	"encoding/json"
 	"net/http"
-	"otus/internal/model/task"
+	"otus/internal/dto"
 	"otus/internal/repository"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Get Task by id dosc
@@ -62,14 +63,14 @@ func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
-// @Param        task  body      task.Task  true  "Task to create"
-// @Success      200  {object}  task.Task
+// @Param        task  body     dto.CreateTaskDto  true  "Task to create"
+// @Success      200  {object}  dto.CreateTaskDto
 // @Failure      400  {string}  string  "Invalid input"
 // @Router       /tasks/ [post]
 // @Security BearerAuth
 func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
 
-	var newTask task.Task
+	var newTask dto.CreateTaskDto
 	err := json.NewDecoder(request.Body).Decode(&newTask)
 	if err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
@@ -98,7 +99,7 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		return
 	}
 
-	repo.Save(newTask)
+	repo.Save(dto.MapToTaskModel(newTask))
 	repo.SaveTaskInFile()
 
 	w.Header().Set("Content-Type", "application/json")
@@ -111,7 +112,7 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 // @Accept       json
 // @Produce      json
 // @Param        id    path      int        true  "Task ID"
-// @Param        task  body      task.Task  true  "Task to update"
+// @Param        task  body      dto.UpdateTaskDto  true  "Task to update"
 // @Success      200
 // @Failure      400  {string}  string  "Invalid input"
 // @Router       /tasks/{id} [put]
@@ -131,8 +132,8 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		http.Error(w, "Invalid task ID", http.StatusBadRequest)
 		return
 	}
-	var newTask task.Task
-	err = json.NewDecoder(request.Body).Decode(&newTask)
+	var updateTask dto.UpdateTaskDto
+	err = json.NewDecoder(request.Body).Decode(&updateTask)
 
 	if err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
@@ -142,7 +143,12 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 	task := repo.GetTaskById(taskID)
 
 	if task != nil {
-		repo.UpdateTask(taskID, &newTask)
+		task.UpdatedTime = time.Now()
+		task.Note = updateTask.Note
+		task.Status = updateTask.Status
+		task.Title = updateTask.Title
+		task.Priority = updateTask.Priority
+		repo.UpdateTask(taskID, task)
 		repo.SaveTaskInFile()
 	} else {
 		http.Error(w, "task with this ID doesnt exist", http.StatusBadRequest)
