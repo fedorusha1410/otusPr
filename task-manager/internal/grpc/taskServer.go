@@ -10,6 +10,8 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type TaskServer struct {
@@ -38,13 +40,13 @@ func (s *TaskServer) GetTaskById(ctx context.Context, req *pb.GetTaskRequest) (*
 		Status:      task.Status,
 		Title:       task.Title,
 		Priority:    task.Priority,
-		CreatedTime: task.CreatedTime.Format(time.RFC3339),
-		UpdatedTime: task.UpdatedTime.Format(time.RFC3339),
+		CreatedTime: timestamppb.New(task.CreatedTime),
+		UpdatedTime: timestamppb.New(task.UpdatedTime),
 	}, nil
 
 }
 
-func (s *TaskServer) GetAllTasks(ctx context.Context, req *pb.EmptyRequest) (*pb.TaskListResponse, error) {
+func (s *TaskServer) GetAllTasks(ctx context.Context, req *emptypb.Empty) (*pb.TaskListResponse, error) {
 
 	tasks := s.repo.GetTasks()
 
@@ -56,8 +58,8 @@ func (s *TaskServer) GetAllTasks(ctx context.Context, req *pb.EmptyRequest) (*pb
 			Note:        t.Note,
 			Status:      t.Status,
 			Priority:    t.Priority,
-			CreatedTime: t.CreatedTime.Format(time.RFC3339),
-			UpdatedTime: t.UpdatedTime.Format(time.RFC3339),
+			CreatedTime: timestamppb.New(t.CreatedTime),
+			UpdatedTime: timestamppb.New(t.UpdatedTime),
 		}
 		pbTasks = append(pbTasks, pbTask)
 	}
@@ -95,7 +97,7 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *pb.CreateTaskRequest) 
 
 }
 
-func (s *TaskServer) UpdateTask(ctx context.Context, req *pb.UpdateTaskRequest) (*pb.EmptyResponse, error) {
+func (s *TaskServer) UpdateTask(ctx context.Context, req *pb.UpdateTaskRequest) (*emptypb.Empty, error) {
 	log.Printf("UpdateTask, Request: %+v\n", req)
 	task := s.repo.GetTaskById(int(req.Id))
 
@@ -106,10 +108,10 @@ func (s *TaskServer) UpdateTask(ctx context.Context, req *pb.UpdateTaskRequest) 
 	s.repo.UpdateTask(int(req.Id), task)
 	s.repo.SaveTaskInFile()
 
-	return &pb.EmptyResponse{}, nil
+	return &emptypb.Empty{}, nil
 }
 
-func (s *TaskServer) DeleteTask(ctx context.Context, req *pb.DeleteTaskRequest) (*pb.EmptyResponse, error) {
+func (s *TaskServer) DeleteTask(ctx context.Context, req *pb.DeleteTaskRequest) (*emptypb.Empty, error) {
 
 	task := s.repo.GetTaskById(int(req.Id))
 
@@ -120,5 +122,5 @@ func (s *TaskServer) DeleteTask(ctx context.Context, req *pb.DeleteTaskRequest) 
 	s.repo.DeleteTask(int(req.Id))
 	s.repo.SaveTaskInFile()
 
-	return &pb.EmptyResponse{}, nil
+	return &emptypb.Empty{}, nil
 }

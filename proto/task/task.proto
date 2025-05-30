@@ -1,15 +1,18 @@
 syntax = "proto3";
 
 package proto;
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "task-manager/internal/grpc/pb";
 
+
 service TaskService {
   rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
-  rpc UpdateTask(UpdateTaskRequest) returns (EmptyResponse);
-  rpc DeleteTask(DeleteTaskRequest) returns (EmptyResponse);
+  rpc UpdateTask(UpdateTaskRequest) returns (google.protobuf.Empty);
+  rpc DeleteTask(DeleteTaskRequest) returns (google.protobuf.Empty);
   rpc GetTaskById(GetTaskRequest) returns (TaskResponse);
-  rpc GetAllTasks(EmptyRequest) returns (TaskListResponse);
+  rpc GetAllTasks(google.protobuf.Empty) returns (TaskListResponse);
 }
 
 message CreateTaskRequest {
@@ -53,14 +56,10 @@ message TaskResponse {
   string priority = 4;
   string status = 5;
   int32 authorId = 6;
-  string createdTime = 7;
-  string updatedTime = 8;
+  google.protobuf.Timestamp createdTime = 7;
+  google.protobuf.Timestamp updatedTime = 8;
 }
 
 message TaskListResponse {
   repeated TaskResponse tasks = 1;
 }
-
-message EmptyRequest {}
-
-message EmptyResponse {}

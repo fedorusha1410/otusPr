@@ -11,6 +11,8 @@ import (
 	"task-manager/pb"
 
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var taskClient pb.TaskServiceClient
@@ -28,14 +30,25 @@ func Init(client pb.TaskServiceClient) {
 // @Router       /tasks/ [get]
 func GetAll(w http.ResponseWriter, r *http.Request) {
 
-	resp, err := taskClient.GetAllTasks(context.Background(), &pb.EmptyRequest{})
+	resp, err := taskClient.GetAllTasks(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		handleGrpcError(w, err)
 		return
 	}
 
+	marshaller := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}
+
+	data, err := marshaller.Marshal(resp)
+	if err != nil {
+		http.Error(w, "Failed to marshal", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	w.Write(data)
 }
 
 // Get Task by id dosc
@@ -70,8 +83,19 @@ func GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	marshaller := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}
+
+	data, err := marshaller.Marshal(resp)
+	if err != nil {
+		http.Error(w, "Failed to marshal", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	w.Write(data)
 }
 
 // @Summary      Insert task
@@ -146,7 +170,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("request from server: %s", resp)
+	log.Printf("response from server: %s", resp)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -185,7 +209,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("request from server: %s", resp)
+	fmt.Printf("response from server: %s", resp)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -198,7 +222,7 @@ func handleGrpcError(w http.ResponseWriter, err error) {
 	}
 
 	code := http.StatusInternalServerError
-	if st.Code() == 5 { 
+	if st.Code() == 5 {
 		code = http.StatusNotFound
 	}
 

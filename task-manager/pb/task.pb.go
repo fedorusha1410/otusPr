@@ -9,6 +9,8 @@ package pb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -353,8 +355,8 @@ type TaskResponse struct {
 	Priority      string                 `protobuf:"bytes,4,opt,name=priority,proto3" json:"priority,omitempty"`
 	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
 	AuthorId      int32                  `protobuf:"varint,6,opt,name=authorId,proto3" json:"authorId,omitempty"`
-	CreatedTime   string                 `protobuf:"bytes,7,opt,name=createdTime,proto3" json:"createdTime,omitempty"`
-	UpdatedTime   string                 `protobuf:"bytes,8,opt,name=updatedTime,proto3" json:"updatedTime,omitempty"`
+	CreatedTime   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=createdTime,proto3" json:"createdTime,omitempty"`
+	UpdatedTime   *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updatedTime,proto3" json:"updatedTime,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -431,18 +433,18 @@ func (x *TaskResponse) GetAuthorId() int32 {
 	return 0
 }
 
-func (x *TaskResponse) GetCreatedTime() string {
+func (x *TaskResponse) GetCreatedTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedTime
 	}
-	return ""
+	return nil
 }
 
-func (x *TaskResponse) GetUpdatedTime() string {
+func (x *TaskResponse) GetUpdatedTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedTime
 	}
-	return ""
+	return nil
 }
 
 type TaskListResponse struct {
@@ -489,83 +491,11 @@ func (x *TaskListResponse) GetTasks() []*TaskResponse {
 	return nil
 }
 
-type EmptyRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *EmptyRequest) Reset() {
-	*x = EmptyRequest{}
-	mi := &file_task_task_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *EmptyRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EmptyRequest) ProtoMessage() {}
-
-func (x *EmptyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_task_task_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EmptyRequest.ProtoReflect.Descriptor instead.
-func (*EmptyRequest) Descriptor() ([]byte, []int) {
-	return file_task_task_proto_rawDescGZIP(), []int{7}
-}
-
-type EmptyResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *EmptyResponse) Reset() {
-	*x = EmptyResponse{}
-	mi := &file_task_task_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *EmptyResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EmptyResponse) ProtoMessage() {}
-
-func (x *EmptyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_task_task_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EmptyResponse.ProtoReflect.Descriptor instead.
-func (*EmptyResponse) Descriptor() ([]byte, []int) {
-	return file_task_task_proto_rawDescGZIP(), []int{8}
-}
-
 var File_task_task_proto protoreflect.FileDescriptor
 
 const file_task_task_proto_rawDesc = "" +
 	"\n" +
-	"\x0ftask/task.proto\x12\x05proto\"\x85\x01\n" +
+	"\x0ftask/task.proto\x12\x05proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x85\x01\n" +
 	"\x11CreateTaskRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" +
@@ -588,29 +518,27 @@ const file_task_task_proto_rawDesc = "" +
 	"\x11DeleteTaskRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\" \n" +
 	"\x0eGetTaskRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"\xdc\x01\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"\x94\x02\n" +
 	"\fTaskResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" +
 	"\x04note\x18\x03 \x01(\tR\x04note\x12\x1a\n" +
 	"\bpriority\x18\x04 \x01(\tR\bpriority\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12\x1a\n" +
-	"\bauthorId\x18\x06 \x01(\x05R\bauthorId\x12 \n" +
-	"\vcreatedTime\x18\a \x01(\tR\vcreatedTime\x12 \n" +
-	"\vupdatedTime\x18\b \x01(\tR\vupdatedTime\"=\n" +
+	"\bauthorId\x18\x06 \x01(\x05R\bauthorId\x12<\n" +
+	"\vcreatedTime\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vcreatedTime\x12<\n" +
+	"\vupdatedTime\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\vupdatedTime\"=\n" +
 	"\x10TaskListResponse\x12)\n" +
-	"\x05tasks\x18\x01 \x03(\v2\x13.proto.TaskResponseR\x05tasks\"\x0e\n" +
-	"\fEmptyRequest\"\x0f\n" +
-	"\rEmptyResponse2\xc4\x02\n" +
+	"\x05tasks\x18\x01 \x03(\v2\x13.proto.TaskResponseR\x05tasks2\xcb\x02\n" +
 	"\vTaskService\x12A\n" +
 	"\n" +
-	"CreateTask\x12\x18.proto.CreateTaskRequest\x1a\x19.proto.CreateTaskResponse\x12<\n" +
+	"CreateTask\x12\x18.proto.CreateTaskRequest\x1a\x19.proto.CreateTaskResponse\x12>\n" +
 	"\n" +
-	"UpdateTask\x12\x18.proto.UpdateTaskRequest\x1a\x14.proto.EmptyResponse\x12<\n" +
+	"UpdateTask\x12\x18.proto.UpdateTaskRequest\x1a\x16.google.protobuf.Empty\x12>\n" +
 	"\n" +
-	"DeleteTask\x12\x18.proto.DeleteTaskRequest\x1a\x14.proto.EmptyResponse\x129\n" +
-	"\vGetTaskById\x12\x15.proto.GetTaskRequest\x1a\x13.proto.TaskResponse\x12;\n" +
-	"\vGetAllTasks\x12\x13.proto.EmptyRequest\x1a\x17.proto.TaskListResponseB\x1fZ\x1dtask-manager/internal/grpc/pbb\x06proto3"
+	"DeleteTask\x12\x18.proto.DeleteTaskRequest\x1a\x16.google.protobuf.Empty\x129\n" +
+	"\vGetTaskById\x12\x15.proto.GetTaskRequest\x1a\x13.proto.TaskResponse\x12>\n" +
+	"\vGetAllTasks\x12\x16.google.protobuf.Empty\x1a\x17.proto.TaskListResponseB\x1fZ\x1dtask-manager/internal/grpc/pbb\x06proto3"
 
 var (
 	file_task_task_proto_rawDescOnce sync.Once
@@ -624,35 +552,37 @@ func file_task_task_proto_rawDescGZIP() []byte {
 	return file_task_task_proto_rawDescData
 }
 
-var file_task_task_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_task_task_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_task_task_proto_goTypes = []any{
-	(*CreateTaskRequest)(nil),  // 0: proto.CreateTaskRequest
-	(*CreateTaskResponse)(nil), // 1: proto.CreateTaskResponse
-	(*UpdateTaskRequest)(nil),  // 2: proto.UpdateTaskRequest
-	(*DeleteTaskRequest)(nil),  // 3: proto.DeleteTaskRequest
-	(*GetTaskRequest)(nil),     // 4: proto.GetTaskRequest
-	(*TaskResponse)(nil),       // 5: proto.TaskResponse
-	(*TaskListResponse)(nil),   // 6: proto.TaskListResponse
-	(*EmptyRequest)(nil),       // 7: proto.EmptyRequest
-	(*EmptyResponse)(nil),      // 8: proto.EmptyResponse
+	(*CreateTaskRequest)(nil),     // 0: proto.CreateTaskRequest
+	(*CreateTaskResponse)(nil),    // 1: proto.CreateTaskResponse
+	(*UpdateTaskRequest)(nil),     // 2: proto.UpdateTaskRequest
+	(*DeleteTaskRequest)(nil),     // 3: proto.DeleteTaskRequest
+	(*GetTaskRequest)(nil),        // 4: proto.GetTaskRequest
+	(*TaskResponse)(nil),          // 5: proto.TaskResponse
+	(*TaskListResponse)(nil),      // 6: proto.TaskListResponse
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),         // 8: google.protobuf.Empty
 }
 var file_task_task_proto_depIdxs = []int32{
-	5, // 0: proto.TaskListResponse.tasks:type_name -> proto.TaskResponse
-	0, // 1: proto.TaskService.CreateTask:input_type -> proto.CreateTaskRequest
-	2, // 2: proto.TaskService.UpdateTask:input_type -> proto.UpdateTaskRequest
-	3, // 3: proto.TaskService.DeleteTask:input_type -> proto.DeleteTaskRequest
-	4, // 4: proto.TaskService.GetTaskById:input_type -> proto.GetTaskRequest
-	7, // 5: proto.TaskService.GetAllTasks:input_type -> proto.EmptyRequest
-	1, // 6: proto.TaskService.CreateTask:output_type -> proto.CreateTaskResponse
-	8, // 7: proto.TaskService.UpdateTask:output_type -> proto.EmptyResponse
-	8, // 8: proto.TaskService.DeleteTask:output_type -> proto.EmptyResponse
-	5, // 9: proto.TaskService.GetTaskById:output_type -> proto.TaskResponse
-	6, // 10: proto.TaskService.GetAllTasks:output_type -> proto.TaskListResponse
-	6, // [6:11] is the sub-list for method output_type
-	1, // [1:6] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	7, // 0: proto.TaskResponse.createdTime:type_name -> google.protobuf.Timestamp
+	7, // 1: proto.TaskResponse.updatedTime:type_name -> google.protobuf.Timestamp
+	5, // 2: proto.TaskListResponse.tasks:type_name -> proto.TaskResponse
+	0, // 3: proto.TaskService.CreateTask:input_type -> proto.CreateTaskRequest
+	2, // 4: proto.TaskService.UpdateTask:input_type -> proto.UpdateTaskRequest
+	3, // 5: proto.TaskService.DeleteTask:input_type -> proto.DeleteTaskRequest
+	4, // 6: proto.TaskService.GetTaskById:input_type -> proto.GetTaskRequest
+	8, // 7: proto.TaskService.GetAllTasks:input_type -> google.protobuf.Empty
+	1, // 8: proto.TaskService.CreateTask:output_type -> proto.CreateTaskResponse
+	8, // 9: proto.TaskService.UpdateTask:output_type -> google.protobuf.Empty
+	8, // 10: proto.TaskService.DeleteTask:output_type -> google.protobuf.Empty
+	5, // 11: proto.TaskService.GetTaskById:output_type -> proto.TaskResponse
+	6, // 12: proto.TaskService.GetAllTasks:output_type -> proto.TaskListResponse
+	8, // [8:13] is the sub-list for method output_type
+	3, // [3:8] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_task_task_proto_init() }
@@ -666,7 +596,7 @@ func file_task_task_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_task_task_proto_rawDesc), len(file_task_task_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
