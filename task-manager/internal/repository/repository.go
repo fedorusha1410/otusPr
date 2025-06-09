@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"task-manager/internal/model/task"
-	"time"
 )
 
 const taskFile = "tasks.json"
@@ -40,7 +39,7 @@ func (repository *Repository) UpdateTask(id int, newData *task.Task) {
 			task.Priority = newData.Priority
 			task.Status = newData.Status
 			task.Title = newData.Title
-			task.UpdatedTime = time.Now()
+			task.UpdatedTime = newData.UpdatedTime
 		}
 	}
 }

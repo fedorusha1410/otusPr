@@ -9,10 +9,12 @@ import (
 	"auth-service/internal/handler/userHandler"
 	"auth-service/internal/middleware"
 	"auth-service/internal/repository"
+	userservice "auth-service/internal/service"
 	"strings"
 	"task-manager/pb"
-	"google.golang.org/grpc"
+
 	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
 )
 
 // @title           Task Manager API
@@ -26,7 +28,9 @@ import (
 func main() {
 
 	repository := repository.New()
-	repository.Restore()
+
+	service := userservice.New(repository)
+	service.Restore()
 
 	err := godotenv.Load()
 	if err != nil {
@@ -52,24 +56,24 @@ func main() {
 			pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 
 			if len(pathParts) == 1 {
-				userHandler.GetAll(w, r, &repository)
+				userHandler.GetAll(w, r, service)
 
 			} else if len(pathParts) == 2 {
-				userHandler.GetById(w, r, &repository)
+				userHandler.GetById(w, r, service)
 			} else {
 				http.Error(w, "Invalid URL", http.StatusBadRequest)
 			}
 		case http.MethodPost:
 			middleware.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-				userHandler.Insert(w, r, &repository)
+				userHandler.Insert(w, r, service)
 			})(w, r)
 		case http.MethodPut:
 			middleware.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-				userHandler.Update(w, r, &repository)
+				userHandler.Update(w, r, service)
 			})(w, r)
 		case http.MethodDelete:
 			middleware.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-				userHandler.Delete(w, r, &repository)
+				userHandler.Delete(w, r, service)
 			})(w, r)
 		default:
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
