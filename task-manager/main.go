@@ -5,6 +5,7 @@ import (
 	"net"
 	mygrpc "task-manager/internal/grpc"
 	"task-manager/internal/repository"
+	"task-manager/internal/service/task"
 	"task-manager/pb"
 
 	"google.golang.org/grpc"
@@ -12,11 +13,12 @@ import (
 
 func main() {
 	repo := repository.New()
-	repo.Restore()
+	service := service.New(&repo)
+	service.Restore()
 
 	grpcServer := grpc.NewServer()
 
-	taskServer := mygrpc.NewTaskServer(&repo)
+	taskServer := mygrpc.NewTaskServer(service)
 	pb.RegisterTaskServiceServer(grpcServer, taskServer)
 
 	listener, err := net.Listen("tcp", ":50051")

@@ -4,7 +4,8 @@ import (
 	"context"
 	"log"
 	"task-manager/internal/model/task"
-	"task-manager/internal/repository"
+	"task-manager/internal/service/task"
+
 	"task-manager/pb"
 	"time"
 
@@ -16,20 +17,20 @@ import (
 
 type TaskServer struct {
 	pb.UnimplementedTaskServiceServer
-	repo *repository.Repository
+	service *service.Service
 }
 
-func NewTaskServer(repository *repository.Repository) *TaskServer {
+func NewTaskServer(s *service.Service) *TaskServer {
 	return &TaskServer{
-		repo: repository,
+		service: s,
 	}
 }
 
 func (s *TaskServer) GetTaskById(ctx context.Context, req *pb.GetTaskRequest) (*pb.TaskResponse, error) {
 
-	task := s.repo.GetTaskById(int(req.Id))
+	task, err := s.service.GetTaskByID(ctx, int(req.Id))
 
-	if task == nil {
+	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "task with ID %d not found", req.Id)
 	}
 
@@ -48,7 +49,11 @@ func (s *TaskServer) GetTaskById(ctx context.Context, req *pb.GetTaskRequest) (*
 
 func (s *TaskServer) GetAllTasks(ctx context.Context, req *emptypb.Empty) (*pb.TaskListResponse, error) {
 
-	tasks := s.repo.GetTasks()
+	tasks, err := s.service.GetTasks(ctx)
+
+	if err != nil {
+		return nil, err
+	}
 
 	var pbTasks []*pb.TaskResponse
 	for _, t := range tasks {
@@ -83,44 +88,54 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *pb.CreateTaskRequest) 
 		Id:          int(req.Id),
 	}
 
-	s.repo.Save(newTask)
-	s.repo.SaveTaskInFile()
+	task, err := s.service.CreateTask(ctx, &newTask)
+
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Error: = %s ", err)
+	}
+	s.service.SaveInFile()
 
 	return &pb.CreateTaskResponse{
 		Id:       int32(newTask.Id),
-		Status:   newTask.Status,
-		Title:    newTask.Title,
-		Note:     newTask.Note,
-		Priority: newTask.Priority,
-		AuthorId: int32(newTask.AuthorId),
+		Status:   task.Status,
+		Title:    task.Title,
+		Note:     task.Note,
+		Priority: task.Priority,
+		AuthorId: int32(task.AuthorId),
 	}, nil
 
 }
 
 func (s *TaskServer) UpdateTask(ctx context.Context, req *pb.UpdateTaskRequest) (*emptypb.Empty, error) {
 	log.Printf("UpdateTask, Request: %+v\n", req)
-	task := s.repo.GetTaskById(int(req.Id))
 
-	if task == nil {
-		return nil, status.Errorf(codes.NotFound, "task with ID %d not found", req.Id)
+	newTask := task.Task{
+		Title:    req.Title,
+		Note:     req.Note,
+		Priority: req.Priority,
+		Status:   req.Status,
+		Id:       int(req.Id),
 	}
 
-	s.repo.UpdateTask(int(req.Id), task)
-	s.repo.SaveTaskInFile()
+	err := s.service.UpdateTask(ctx, int(req.Id), &newTask)
+
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Error: = %s ", err)
+	}
+
+	s.service.SaveInFile()
 
 	return &emptypb.Empty{}, nil
 }
 
 func (s *TaskServer) DeleteTask(ctx context.Context, req *pb.DeleteTaskRequest) (*emptypb.Empty, error) {
 
-	task := s.repo.GetTaskById(int(req.Id))
+	err := s.service.DeleteTask(ctx, int(req.Id))
 
-	if task == nil {
-		return nil, status.Errorf(codes.NotFound, "task with ID %d not found", req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "Error: =  %d ", err)
 	}
-
-	s.repo.DeleteTask(int(req.Id))
-	s.repo.SaveTaskInFile()
+	s.service.SaveInFile()
 
 	return &emptypb.Empty{}, nil
 }

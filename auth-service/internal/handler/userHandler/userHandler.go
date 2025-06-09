@@ -1,10 +1,10 @@
 package userHandler
 
 import (
+	"auth-service/internal/dto"
+	userservice "auth-service/internal/service"
 	"encoding/json"
 	"net/http"
-	"auth-service/internal/dto"
-	"auth-service/internal/repository"
 	"strconv"
 	"strings"
 )
@@ -18,7 +18,7 @@ import (
 // @Param        id   path      int  true  "User ID"
 // @Success      200  {object}  user.User
 // @Router       /users/{id} [get]
-func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
+func GetById(w http.ResponseWriter, request *http.Request, service *userservice.Service) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
 
@@ -33,12 +33,18 @@ func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repo
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-	user := repo.GetUserById(userID)
+	user, err := service.GetUserByID(userID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 
 	if user == nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
@@ -50,9 +56,14 @@ func GetById(w http.ResponseWriter, request *http.Request, repo *repository.Repo
 // @Produce      json
 // @Success      200  {array}  user.User
 // @Router       /users/ [get]
-func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
+func GetAll(w http.ResponseWriter, request *http.Request, service *userservice.Service) {
 
-	users := repo.GetUsers()
+	users, err := service.GetUsers()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
 }
@@ -67,7 +78,7 @@ func GetAll(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 // @Failure      400   {string}  string  "Invalid input"
 // @Router       /users/ [post]
 // @Security BearerAuth
-func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
+func Insert(w http.ResponseWriter, request *http.Request, service *userservice.Service) {
 
 	var newUser dto.CreateUserDto
 	err := json.NewDecoder(request.Body).Decode(&newUser)
@@ -76,9 +87,9 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		return
 	}
 
-	userOld := repo.GetUserById(newUser.Id)
+	userOld, err := service.GetUserByID(newUser.Id)
 
-	if userOld != nil {
+	if userOld != nil || err != nil {
 		http.Error(w, "User with that ID already exists, try other", http.StatusBadRequest)
 		return
 	}
@@ -94,8 +105,8 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 	}
 	user := dto.MapToUserModel(newUser)
 	user.SetPassword(newUser.Password)
-	repo.Save(user)
-	repo.SaveUserInFile()
+	service.CreateUser(&user)
+	service.SaveInFile()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newUser)
@@ -112,7 +123,7 @@ func Insert(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 // @Failure      400   {string}  string  "Invalid input"
 // @Router       /users/{id} [put]
 // @Security BearerAuth
-func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
+func Update(w http.ResponseWriter, request *http.Request, service *userservice.Service) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
 
@@ -135,13 +146,13 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		return
 	}
 
-	user := repo.GetUserById(userID)
+	user, err := service.GetUserByID(userID)
 
-	if user != nil {
+	if user != nil || err == nil {
 		user.Name = newUser.Name
 		user.SetPassword(newUser.Password)
-		repo.UpdateUser(userID, user)
-		repo.SaveUserInFile()
+		service.UpdateUser(userID, user)
+		service.SaveInFile()
 	} else {
 		http.Error(w, "User with this ID doesnt exist", http.StatusBadRequest)
 	}
@@ -158,7 +169,7 @@ func Update(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 // @Failure      400  {string}  string  "Invalid input"
 // @Router       /users/{id} [delete]
 // @Security BearerAuth
-func Delete(w http.ResponseWriter, request *http.Request, repo *repository.Repository) {
+func Delete(w http.ResponseWriter, request *http.Request, service *userservice.Service) {
 	path := request.URL.Path
 	parts := strings.Split(path, "/")
 
@@ -174,11 +185,11 @@ func Delete(w http.ResponseWriter, request *http.Request, repo *repository.Repos
 		return
 	}
 
-	user := repo.GetUserById(userID)
+	user, err := service.GetUserByID(userID)
 
-	if user != nil {
-		repo.DeleteUser(userID)
-		repo.SaveUserInFile()
+	if user != nil || err == nil {
+		service.DeleteUser(userID)
+		service.SaveInFile()
 	} else {
 		http.Error(w, "User with this ID doesnt exist", http.StatusBadRequest)
 	}

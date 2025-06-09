@@ -13,8 +13,8 @@ type Repository struct {
 	Users []*user.User
 }
 
-func New() Repository {
-	return Repository{}
+func New() *Repository {
+	return &Repository{}
 }
 
 func (repository *Repository) GetUsers() []*user.User {
@@ -90,7 +90,7 @@ func (repository *Repository) Restore() {
 	if err == nil && len(fileData) > 0 {
 		err = json.Unmarshal(fileData, &repository.Users)
 		if err != nil {
-			fmt.Println("error decoding existing users: %w", err)
+			fmt.Println("error decoding existing users:", err)
 		}
 	}
 
