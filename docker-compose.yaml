@@ -1,0 +1,25 @@
+
+services:
+  mongo-otus:
+    image: mongo:6.0
+    container_name: mongo-otus
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: taskdb
+
+  redis-otus:
+    image: redis:7
+    container_name: redis-otus
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mongo-data:
+  redis-data:
