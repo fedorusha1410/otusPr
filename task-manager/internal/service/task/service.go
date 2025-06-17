@@ -3,13 +3,15 @@ package service
 import (
 	"context"
 	"errors"
+	redislog "task-manager/internal/logger"
 	"task-manager/internal/model/task"
 	"task-manager/internal/repository"
 	"time"
 )
 
 type Service struct {
-	repo repository.TaskRepository
+	repo   repository.MongoRepository
+	logger redislog.RedisLogger
 }
 
 var (
@@ -17,8 +19,8 @@ var (
 	ErrInvalid  = errors.New("invalid task input")
 )
 
-func New(repo repository.TaskRepository) *Service {
-	return &Service{repo: repo}
+func New(repo repository.MongoRepository, logger redislog.RedisLogger) *Service {
+	return &Service{repo: repo, logger: logger}
 }
 
 func (s *Service) CreateTask(ctx context.Context, t *task.Task) (*task.Task, error) {
@@ -28,8 +30,14 @@ func (s *Service) CreateTask(ctx context.Context, t *task.Task) (*task.Task, err
 
 	t.CreatedTime = time.Now()
 	t.UpdatedTime = t.CreatedTime
+	_ = s.logger.LogAction(ctx, "create", "task", map[string]interface{}{
+		"id":    t.Id,
+		"title": t.Title,
+		"time":  t.CreatedTime.Format(time.RFC3339),
+	})
 
 	s.repo.Save(*t)
+
 	return t, nil
 }
 
@@ -38,6 +46,7 @@ func (s *Service) GetTaskByID(ctx context.Context, id int) (*task.Task, error) {
 	if t == nil {
 		return nil, ErrNotFound
 	}
+
 	return t, nil
 }
 
@@ -53,6 +62,13 @@ func (s *Service) UpdateTask(ctx context.Context, id int, newData *task.Task) er
 
 	newData.UpdatedTime = time.Now()
 	s.repo.UpdateTask(id, newData)
+
+	_ = s.logger.LogAction(ctx, "update", "task", map[string]interface{}{
+		"id":    id,
+		"title": newData.Title,
+		"time":  newData.UpdatedTime.Format(time.RFC3339),
+	})
+
 	return nil
 }
 
@@ -62,13 +78,10 @@ func (s *Service) DeleteTask(ctx context.Context, id int) error {
 		return ErrNotFound
 	}
 	s.repo.DeleteTask(id)
+
+	_ = s.logger.LogAction(ctx, "delete", "task", map[string]interface{}{
+		"id":    id,
+		"title": t.Title,
+	})
 	return nil
-}
-
-func (s *Service) SaveInFile() {
-	s.repo.SaveTaskInFile()
-}
-
-func (s *Service) Restore() {
-	s.repo.Restore()
 }
