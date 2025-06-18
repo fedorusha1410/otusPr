@@ -42,7 +42,11 @@ func (s *Service) CreateTask(ctx context.Context, t *task.Task) (*task.Task, err
 }
 
 func (s *Service) GetTaskByID(ctx context.Context, id int) (*task.Task, error) {
-	t := s.repo.GetTaskById(id)
+	t, err := s.repo.GetTaskById(id)
+
+	if err != nil {
+		return nil, err
+	}
 	if t == nil {
 		return nil, ErrNotFound
 	}
@@ -51,11 +55,16 @@ func (s *Service) GetTaskByID(ctx context.Context, id int) (*task.Task, error) {
 }
 
 func (s *Service) GetTasks(ctx context.Context) ([]*task.Task, error) {
-	return s.repo.GetTasks(), nil
+	return s.repo.GetTasks()
 }
 
 func (s *Service) UpdateTask(ctx context.Context, id int, newData *task.Task) error {
-	old := s.repo.GetTaskById(id)
+	old, err := s.repo.GetTaskById(id)
+
+	if err != nil{
+		return err
+	}
+
 	if old == nil {
 		return ErrNotFound
 	}
@@ -73,12 +82,19 @@ func (s *Service) UpdateTask(ctx context.Context, id int, newData *task.Task) er
 }
 
 func (s *Service) DeleteTask(ctx context.Context, id int) error {
-	t := s.repo.GetTaskById(id)
+	t, err := s.repo.GetTaskById(id)
+
+	if err != nil {
+		return err
+	}
 	if t == nil {
 		return ErrNotFound
 	}
-	s.repo.DeleteTask(id)
+	err = s.repo.DeleteTask(id)
 
+	if err != nil {
+		return err
+	}
 	_ = s.logger.LogAction(ctx, "delete", "task", map[string]interface{}{
 		"id":    id,
 		"title": t.Title,
