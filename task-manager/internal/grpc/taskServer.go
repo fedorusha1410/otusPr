@@ -93,7 +93,6 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *pb.CreateTaskRequest) 
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "Error: = %s ", err)
 	}
-	s.service.SaveInFile()
 
 	return &pb.CreateTaskResponse{
 		Id:       int32(newTask.Id),
@@ -123,8 +122,6 @@ func (s *TaskServer) UpdateTask(ctx context.Context, req *pb.UpdateTaskRequest) 
 		return nil, status.Errorf(codes.NotFound, "Error: = %s ", err)
 	}
 
-	s.service.SaveInFile()
-
 	return &emptypb.Empty{}, nil
 }
 
@@ -135,7 +132,6 @@ func (s *TaskServer) DeleteTask(ctx context.Context, req *pb.DeleteTaskRequest) 
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Error: =  %d ", err)
 	}
-	s.service.SaveInFile()
 
 	return &emptypb.Empty{}, nil
 }
