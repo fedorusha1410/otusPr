@@ -3,14 +3,14 @@ package task
 import "time"
 
 type Task struct {
-	Id          int        `json:"Id" bson:"id"`
-	Status      string    `json:"Status" bson:"status"`
-	Title       string    `json:"Title" bson:"title"`
-	Note        string    `json:"Note" bson:"note"`
-	CreatedTime time.Time `json:"CreatedTime" bson:"created_time"`
-	UpdatedTime time.Time `json:"UpdatedTime" bson:"updated_time"`
-	Priority    string    `json:"Priority" bson:"priority"`
-	AuthorId    int       `json:"authorId" bson:"author_id"`
+	Id          int       `json:"id"`
+	Title       string    `json:"title"`
+	Status      string    `json:"status"`
+	Note        string    `json:"note"`
+	CreatedTime time.Time `json:"created_time"`
+	UpdatedTime time.Time `json:"updated_time"`
+	Priority    string    `json:"priority"`
+	AuthorId    int       `json:"author_id"`
 }
 
 func NewObject() Task {

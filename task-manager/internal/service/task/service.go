@@ -10,7 +10,7 @@ import (
 )
 
 type Service struct {
-	repo   repository.MongoRepository
+	repo   repository.Repository
 	logger redislog.RedisLogger
 }
 
@@ -19,7 +19,7 @@ var (
 	ErrInvalid  = errors.New("invalid task input")
 )
 
-func New(repo repository.MongoRepository, logger redislog.RedisLogger) *Service {
+func New(repo repository.Repository, logger redislog.RedisLogger) *Service {
 	return &Service{repo: repo, logger: logger}
 }
 

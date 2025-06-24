@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"log"
 	"net"
 	mygrpc "task-manager/internal/grpc"
@@ -12,20 +12,20 @@ import (
 	"task-manager/pb"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	_ "github.com/lib/pq"
+
 	"google.golang.org/grpc"
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	client := connectMongo()
-	collection := client.Database("taskdb").Collection("tasks")
-	mongoRepo := repository.NewMongoRepository(collection)
+	db := connectPostgres()
+	defer db.Close()
+	repository := repository.New(db)
 	logger := redislog.NewRedisLogger("localhost:6379")
 
-	service := service.New(*mongoRepo, *logger)
+	service := service.New(*repository, *logger)
 	logger.LogPrinter(ctx, 20*time.Second)
 	grpcServer := grpc.NewServer()
 
@@ -43,21 +43,16 @@ func main() {
 	}
 }
 
-func connectMongo() *mongo.Client {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func connectPostgres() *sql.DB {
 
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-
-	client, err := mongo.Connect(ctx, clientOptions)
+	db, err := sql.Open("postgres", "postgres://postgres:postgres@localhost:5432/taskdb?sslmode=disable")
 	if err != nil {
-		log.Fatalf("Mongo connect error: %v", err)
-	}
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		log.Fatalf("Mongo ping error: %v", err)
+		log.Fatalf("Error opening database: %v", err)
 	}
 
-	fmt.Println("Connected to MongoDB")
-	return client
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Error connecting to the database: %v", err)
+	}
+
+	return db
 }
