@@ -1,15 +1,17 @@
 
 services:
-  mongo-otus:
-    image: mongo:6.0
-    container_name: mongo-otus
+  postgres-otus:
+    image: postgres:16
+    container_name: postgres-otus
     restart: unless-stopped
     ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
+      - "5432:5432"
     environment:
-      MONGO_INITDB_DATABASE: taskdb
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
   redis-otus:
     image: redis:7
@@ -21,5 +23,5 @@ services:
       - redis-data:/data
 
 volumes:
-  mongo-data:
+  postgres-data:
   redis-data:
