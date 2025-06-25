@@ -49,7 +49,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenString, err := createToken(dbUser.Id, dbUser.Name)
+	tokenString, err := createToken(dbUser.Id, int(dbUser.Role))
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
@@ -58,13 +58,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
 }
 
-func createToken(userID int, username string) (string, error) {
+func createToken(userID int, role int) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET"))
 
 	claims := jwt.MapClaims{
-		"userId":   userID,
-		"username": username,
-		"exp":      time.Now().Add(time.Hour * 1).Unix(),
+		"userId": userID,
+		"role":   role,
+		"exp":    time.Now().Add(time.Hour * 1).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

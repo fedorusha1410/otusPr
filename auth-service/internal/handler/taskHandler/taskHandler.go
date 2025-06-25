@@ -33,7 +33,7 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	userIdRaw := ctx.Value("userId")
-	roleRaw := ctx.Value("userRole")
+	roleRaw := ctx.Value("role")
 
 	userID, ok1 := userIdRaw.(int)
 	role, ok2 := roleRaw.(string)
