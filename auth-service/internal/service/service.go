@@ -24,44 +24,53 @@ func (s *Service) CreateUser(u *user.User) (*user.User, error) {
 		return nil, ErrInvalidUser
 	}
 
-	s.repo.Save(*u)
+	s.repo.Save(u)
 	return u, nil
 }
 
 func (s *Service) GetUserByID(id int) (*user.User, error) {
-	u := s.repo.GetUserById(id)
+	u, err := s.repo.GetUserById(id)
+	if err != nil {
+		return nil, err
+	}
+
 	if u == nil {
 		return nil, ErrUserNotFound
 	}
+
 	return u, nil
 }
 
 func (s *Service) GetUsers() ([]*user.User, error) {
-	return s.repo.GetUsers(), nil
+	users, err := s.repo.GetUsers()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (s *Service) UpdateUser(id int, data *user.User) error {
-	existing := s.repo.GetUserById(id)
+	existing, err := s.repo.GetUserById(id)
+	if err != nil {
+		return err
+	}
 	if existing == nil {
 		return ErrUserNotFound
 	}
+
 	s.repo.UpdateUser(id, data)
 	return nil
 }
 
 func (s *Service) DeleteUser(id int) error {
-	existing := s.repo.GetUserById(id)
+	existing, err := s.repo.GetUserById(id)
+
+	if err != nil {
+		return err
+	}
 	if existing == nil {
 		return ErrUserNotFound
 	}
 	s.repo.DeleteUser(id)
 	return nil
-}
-
-func (s *Service) SaveInFile() {
-	s.repo.SaveUserInFile()
-}
-
-func (s *Service) Restore() {
-	s.repo.Restore()
 }

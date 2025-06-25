@@ -9,6 +9,12 @@ type CreateUserDto struct {
 	Password string `json:"password"`
 }
 
+type User struct {
+    ID       int    `json:"id"`
+    Name string `json:"Name"`
+    Role     int    `json:"Role"`
+}
+
 type UpdateUserDto struct {
 	Name     string `json:"Name"`
 	Password string `json:"password"`

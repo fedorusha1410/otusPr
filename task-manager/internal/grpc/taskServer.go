@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"task-manager/internal/model/task"
-	"task-manager/internal/service/task"
+	service "task-manager/internal/service/task"
 
 	"task-manager/pb"
 	"time"
@@ -47,9 +47,17 @@ func (s *TaskServer) GetTaskById(ctx context.Context, req *pb.GetTaskRequest) (*
 
 }
 
-func (s *TaskServer) GetAllTasks(ctx context.Context, req *emptypb.Empty) (*pb.TaskListResponse, error) {
+func (s *TaskServer) GetAllTasks(ctx context.Context, req *pb.GetTasksRequest) (*pb.TaskListResponse, error) {
 
-	tasks, err := s.service.GetTasks(ctx)
+	filter := &task.TaskFilter{
+		Status:        req.Status,
+		CreatedAfter:  req.CreatedAfter.AsTime(),
+		CreatedBefore: req.CreatedBefore.AsTime(),
+		UpdatedAfter:  req.UpdatedAfter.AsTime(),
+		UpdatedBefore: req.UpdatedBefore.AsTime(),
+	}
+
+	tasks, err := s.service.GetTasks(ctx, int(req.UserId), req.Role, filter)
 
 	if err != nil {
 		return nil, err

@@ -15,8 +15,8 @@ const (
 
 type User struct {
 	Id       int    `json:"id"`
-	Name     string `json:"Name"`
-	Role     Role   `json:"Role"`
+	Name     string `json:"name"`
+	Role     Role   `json:"role"`
 	Password string `json:"password"`
 }
 
@@ -56,13 +56,11 @@ func (user *User) SetPassword(password string) error {
 	return nil
 }
 
-func (user *User) ComparePassword(password string) (string, error) {
-	passByBytes := []byte(password)
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), passByBytes)
+func (user *User) ComparePassword(password string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("password is wrong")
-	} else {
-		return "password is correct", nil
+		return errors.New("password is wrong")
 	}
+	return nil
 
 }

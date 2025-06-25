@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
@@ -12,8 +13,8 @@ import (
 	userservice "auth-service/internal/service"
 	"strings"
 	"task-manager/pb"
-
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
 
@@ -27,10 +28,11 @@ import (
 // @name Authorization
 func main() {
 
-	repository := repository.New()
+	db := connectPostgres()
+	defer db.Close()
+	repository := repository.New(db)
 
 	service := userservice.New(repository)
-	service.Restore()
 
 	err := godotenv.Load()
 	if err != nil {
@@ -45,6 +47,7 @@ func main() {
 	grpcClient := pb.NewTaskServiceClient(conn)
 
 	taskHandler.Init(grpcClient)
+	authHandler := authHandler.New(repository)
 
 	http.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(http.Dir("./docs"))))
 	http.Handle("/swagger-ui/", http.StripPrefix("/swagger-ui/", http.FileServer(http.Dir("./swagger-ui"))))
@@ -111,4 +114,18 @@ func main() {
 	})
 
 	http.ListenAndServe(":8090", nil)
+}
+
+func connectPostgres() *sql.DB {
+
+	db, err := sql.Open("postgres", "postgres://postgres:postgres@localhost:5432/userdb?sslmode=disable")
+	if err != nil {
+		log.Fatalf("Error opening database: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Error connecting to the database: %v", err)
+	}
+
+	return db
 }

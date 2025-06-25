@@ -36,7 +36,7 @@ func (s *Service) CreateTask(ctx context.Context, t *task.Task) (*task.Task, err
 		"time":  t.CreatedTime.Format(time.RFC3339),
 	})
 
-	s.repo.Save(*t)
+	s.repo.Save(t)
 
 	return t, nil
 }
@@ -54,8 +54,8 @@ func (s *Service) GetTaskByID(ctx context.Context, id int) (*task.Task, error) {
 	return t, nil
 }
 
-func (s *Service) GetTasks(ctx context.Context) ([]*task.Task, error) {
-	return s.repo.GetTasks()
+func (s *Service) GetTasks(ctx context.Context, userId int, userRole string, filter *task.TaskFilter) ([]*task.Task, error) {
+	return s.repo.GetTasks(userId, userRole, filter)
 }
 
 func (s *Service) UpdateTask(ctx context.Context, id int, newData *task.Task) error {
@@ -101,3 +101,4 @@ func (s *Service) DeleteTask(ctx context.Context, id int) error {
 	})
 	return nil
 }
+

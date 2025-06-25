@@ -2,14 +2,22 @@ package authHandler
 
 import (
 	"auth-service/internal/dto"
+	"auth-service/internal/repository"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 )
+
+type Handler struct {
+	userRepo repository.UserRepository
+}
+
+func New(userRepo repository.UserRepository) *Handler {
+	return &Handler{userRepo: userRepo}
+}
 
 // @Summary Login
 // @Description Authenticate user and return JWT token
@@ -20,41 +28,46 @@ import (
 // @Success 200 {object} map[string]string
 // @Failure 401 {string} string "Invalid credentials"
 // @Router /login [post]
-func Login(w http.ResponseWriter, r *http.Request) {
-
-	defaultUsername := os.Getenv("DEFAULT_USERNAME")
-	defaultPassword := os.Getenv("DEFAULT_PASSWORD")
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	var username, password string
-
 	var login dto.Login
-	json.NewDecoder(r.Body).Decode(&login)
-	username = login.Username
-	password = login.Password
-
-	if username == defaultUsername && password == defaultPassword {
-		tokenString, err := createToken(username)
-		if err != nil {
-			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, tokenString)
+	if err := json.NewDecoder(r.Body).Decode(&login); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
-	} else {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 	}
+
+	dbUser, err := h.userRepo.GetByUsername(login.Username)
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	if err := dbUser.ComparePassword(login.Password); err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	tokenString, err := createToken(dbUser.Id, dbUser.Name)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
 }
 
-func createToken(username string) (string, error) {
-	var secretKey = []byte(os.Getenv("JWT_SECRET"))
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"username": username,
-			"exp":      time.Now().Add(time.Hour * 1).Unix(),
-		})
+func createToken(userID int, username string) (string, error) {
+	secretKey := []byte(os.Getenv("JWT_SECRET"))
+
+	claims := jwt.MapClaims{
+		"userId":   userID,
+		"username": username,
+		"exp":      time.Now().Add(time.Hour * 1).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {

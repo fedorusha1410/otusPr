@@ -106,7 +106,6 @@ func Insert(w http.ResponseWriter, request *http.Request, service *userservice.S
 	user := dto.MapToUserModel(newUser)
 	user.SetPassword(newUser.Password)
 	service.CreateUser(&user)
-	service.SaveInFile()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newUser)
@@ -152,7 +151,6 @@ func Update(w http.ResponseWriter, request *http.Request, service *userservice.S
 		user.Name = newUser.Name
 		user.SetPassword(newUser.Password)
 		service.UpdateUser(userID, user)
-		service.SaveInFile()
 	} else {
 		http.Error(w, "User with this ID doesnt exist", http.StatusBadRequest)
 	}
@@ -189,7 +187,6 @@ func Delete(w http.ResponseWriter, request *http.Request, service *userservice.S
 
 	if user != nil || err == nil {
 		service.DeleteUser(userID)
-		service.SaveInFile()
 	} else {
 		http.Error(w, "User with this ID doesnt exist", http.StatusBadRequest)
 	}
