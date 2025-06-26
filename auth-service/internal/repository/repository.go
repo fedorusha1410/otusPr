@@ -2,97 +2,82 @@ package repository
 
 import (
 	"auth-service/internal/model/user"
-	"encoding/json"
-	"fmt"
-	"os"
+	"database/sql"
 )
 
-const userFile = "users.json"
-
 type Repository struct {
-	Users []*user.User
+	db *sql.DB
 }
 
-func New() *Repository {
-	return &Repository{}
+func New(db *sql.DB) *Repository {
+	return &Repository{db: db}
 }
 
-func (repository *Repository) GetUsers() []*user.User {
-	return repository.Users
-}
-
-func (repository *Repository) GetUserById(id int) *user.User {
-
-	for _, user := range repository.Users {
-		if user.Id == id {
-			return user
-		}
-	}
-	return nil
-}
-
-func (repository *Repository) UpdateUser(id int, newData *user.User) {
-
-	for _, user := range repository.Users {
-		if user.Id == id {
-			user.Name = newData.Name
-		}
-	}
-}
-
-func (repository *Repository) DeleteUser(id int) {
-
-	for i, user := range repository.Users {
-		if user.Id == id {
-			repository.Users = append(repository.Users[:i], repository.Users[i+1:]...)
-		}
-	}
-}
-
-func (repository *Repository) Save(newUser user.User) {
-	repository.Users = append(repository.Users, &newUser)
-
-}
-
-func (repository *Repository) SaveUserInFile() {
-	file, err := os.OpenFile(userFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+func (r *Repository) GetUsers() ([]*user.User, error) {
+	rows, err := r.db.Query("SELECT id, name, role, password FROM users")
 	if err != nil {
-		fmt.Println("Error of opening task file")
+		return nil, err
 	}
-	defer file.Close()
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	err = encoder.Encode(repository.Users)
-	if err != nil {
-		fmt.Println("Error of writing user:", err)
-		return
+	defer rows.Close()
+
+	var users []*user.User
+	for rows.Next() {
+		u := &user.User{}
+		var roleInt int
+		if err := rows.Scan(&u.Id, &u.Name, &roleInt, &u.Password); err != nil {
+			return nil, err
+		}
+		u.Role = user.Role(roleInt)
+		users = append(users, u)
 	}
+	return users, nil
 }
 
-func (repository *Repository) Restore() {
+func (r *Repository) GetUserById(id int) (*user.User, error) {
 
-	fileUser, err := os.Open(userFile)
+	query := "SELECT id, name, role, password FROM users WHERE id = $1"
+	row := r.db.QueryRow(query, id)
+
+	u := &user.User{}
+	var roleInt int
+	err := row.Scan(&u.Id, &u.Name, &roleInt, &u.Password)
 	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("File not found, create file")
-			fileUser, err = os.Create(userFile)
-			if err != nil {
-				fmt.Println("Error of creating 'user' file:", err)
-				return
-			}
-		} else {
-			fmt.Println("Error of opening 'user' file:", err)
-			return
-		}
+		return nil, err
+	}
+	u.Role = user.Role(roleInt)
+	return u, nil
+}
+
+func (r *Repository) GetByUsername(username string) (*user.User, error) {
+	query := `SELECT id, name, role, password FROM users WHERE name = $1`
+	row := r.db.QueryRow(query, username)
+
+	u := &user.User{}
+	var roleInt int
+	err := row.Scan(&u.Id, &u.Name, &roleInt, &u.Password)
+	if err != nil {
+		return nil, err
 	}
 
-	fileData, err := os.ReadFile(userFile)
-	if err == nil && len(fileData) > 0 {
-		err = json.Unmarshal(fileData, &repository.Users)
-		if err != nil {
-			fmt.Println("error decoding existing users:", err)
-		}
-	}
+	u.Role = user.Role(roleInt)
+	return u, nil
+}
 
-	defer fileUser.Close()
+func (r *Repository) UpdateUser(id int, newData *user.User) error {
+
+	query := `UPDATE users SET name = $1, role = $2, password = $3 WHERE id = $4`
+	_, err := r.db.Exec(query, newData.Name, int(newData.Role), newData.Password, id)
+	return err
+}
+
+func (r *Repository) DeleteUser(id int) error {
+
+	query := `DELETE FROM users WHERE id = $1`
+	_, err := r.db.Exec(query, id)
+	return err
+}
+
+func (r *Repository) Save(newUser *user.User) error {
+	query := `INSERT INTO users (name, role, password) VALUES ($1, $2, $3) RETURNING id`
+	return r.db.QueryRow(query, newUser.Name, int(newUser.Role), newUser.Password).Scan(&newUser.Id)
 }

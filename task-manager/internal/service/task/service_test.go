@@ -7,44 +7,51 @@ import (
 	"time"
 
 	"task-manager/internal/model/task"
-	"task-manager/internal/service/task"
+	service "task-manager/internal/service/task"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-
 type MockRepo struct {
 	mock.Mock
 }
-
-func (m *MockRepo) GetTasks() []*task.Task {
-	args := m.Called()
-	return args.Get(0).([]*task.Task)
+type MockLogger struct {
+	mock.Mock
 }
 
-func (m *MockRepo) GetTaskById(id int) *task.Task {
+func (m *MockLogger) LogAction(ctx context.Context, action, entity string, data map[string]interface{}) error {
+	m.Called(ctx, action, entity, data)
+	return nil
+}
+
+func (m *MockRepo) GetTasks(userId int, role string) ([]*task.Task, error) {
+	args := m.Called()
+	return args.Get(0).([]*task.Task), args.Error(1)
+}
+
+func (m *MockRepo) GetTaskById(id int) (*task.Task, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
-		return nil
+		return nil, args.Error(1)
 	}
-	return args.Get(0).(*task.Task)
+	return args.Get(0).(*task.Task), args.Error(1)
 }
 
-func (m *MockRepo) UpdateTask(id int, newData *task.Task) {
-	m.Called(id, newData)
+func (m *MockRepo) UpdateTask(id int, newData *task.Task) error {
+	args := m.Called(id, newData)
+	return args.Error(0)
 }
 
-func (m *MockRepo) DeleteTask(id int) {
-	m.Called(id)
+func (m *MockRepo) DeleteTask(id int) error {
+	args := m.Called(id)
+	return args.Error(0)
 }
 
-func (m *MockRepo) Save(t task.Task) {
-	m.Called(t)
+func (m *MockRepo) Save(t task.Task) error {
+	args := m.Called(t)
+	return args.Error(0)
 }
-
-func (m *MockRepo) SaveTaskInFile() {}
-func (m *MockRepo) Restore()        {}
 
 func TestGetTaskByID(t *testing.T) {
 	mockRepo := new(MockRepo)

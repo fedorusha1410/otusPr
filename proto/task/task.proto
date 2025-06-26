@@ -12,7 +12,7 @@ service TaskService {
   rpc UpdateTask(UpdateTaskRequest) returns (google.protobuf.Empty);
   rpc DeleteTask(DeleteTaskRequest) returns (google.protobuf.Empty);
   rpc GetTaskById(GetTaskRequest) returns (TaskResponse);
-  rpc GetAllTasks(google.protobuf.Empty) returns (TaskListResponse);
+  rpc GetAllTasks(GetTasksRequest) returns (TaskListResponse);
 }
 
 message CreateTaskRequest {
@@ -21,6 +21,17 @@ message CreateTaskRequest {
   string note = 3;
   string priority = 4;
   int32 authorId = 5;
+}
+
+message GetTasksRequest {
+  int32 user_id = 1;
+  string role = 2;
+  string status = 3;
+  google.protobuf.Timestamp createdAfter = 4;
+  google.protobuf.Timestamp createdBefore = 5;
+  google.protobuf.Timestamp updatedAfter = 6;
+  google.protobuf.Timestamp updatedBefore = 7;
+
 }
 
 message CreateTaskResponse {

@@ -1,5 +1,18 @@
 definitions:
-  dto.CreateTaskDto:
+  dto.CreateTaskRequest:
+    properties:
+      Id:
+        type: integer
+      Note:
+        type: string
+      Priority:
+        type: string
+      Title:
+        type: string
+      authorId:
+        type: integer
+    type: object
+  dto.CreateTaskResponse:
     properties:
       Id:
         type: integer
@@ -26,6 +39,13 @@ definitions:
         type: string
     type: object
   dto.Login:
+    properties:
+      Name:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.SignUp:
     properties:
       Name:
         type: string
@@ -60,14 +80,14 @@ definitions:
     - Manager
   user.User:
     properties:
-      Name:
-        type: string
-      Role:
-        $ref: '#/definitions/user.Role'
       id:
         type: integer
+      name:
+        type: string
       password:
         type: string
+      role:
+        $ref: '#/definitions/user.Role'
     type: object
 host: localhost:8090
 info:
@@ -104,6 +124,38 @@ paths:
       summary: Login
       tags:
       - auth
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Register new user and return JWT token
+      parameters:
+      - description: New user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignUp'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Signup
+      tags:
+      - auth
   /tasks/:
     get:
       consumes:
@@ -116,7 +168,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.CreateTaskDto'
+              $ref: '#/definitions/dto.CreateTaskRequest'
             type: array
       summary: Get Tasks
       tags:
@@ -131,14 +183,14 @@ paths:
         name: task
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateTaskDto'
+          $ref: '#/definitions/dto.CreateTaskRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.CreateTaskDto'
+            $ref: '#/definitions/dto.CreateTaskResponse'
         "400":
           description: Invalid input
           schema:
@@ -189,7 +241,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.CreateTaskDto'
+            $ref: '#/definitions/dto.CreateTaskRequest'
       summary: Get Task
       tags:
       - tasks

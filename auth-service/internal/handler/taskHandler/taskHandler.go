@@ -9,10 +9,11 @@ import (
 	"strconv"
 	"strings"
 	"task-manager/pb"
+	"time"
 
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var taskClient pb.TaskServiceClient
@@ -26,11 +27,57 @@ func Init(client pb.TaskServiceClient) {
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
-// @Success      200  {array}  dto.CreateTaskDto
+// @Success      200  {array}  dto.CreateTaskRequest
 // @Router       /tasks/ [get]
 func GetAll(w http.ResponseWriter, r *http.Request) {
 
-	resp, err := taskClient.GetAllTasks(context.Background(), &emptypb.Empty{})
+	ctx := r.Context()
+	userIdRaw := ctx.Value("userId")
+	roleRaw := ctx.Value("role")
+
+	userID, ok1 := userIdRaw.(int)
+	role, ok2 := roleRaw.(string)
+
+	if !ok1 || !ok2 {
+		http.Error(w, "Unauthorized: missing user info", http.StatusUnauthorized)
+		return
+	}
+
+	reqBody := &pb.GetTasksRequest{
+		UserId: int32(userID),
+		Role:   role,
+	}
+
+	q := r.URL.Query()
+	if status := q.Get("status"); status != "" {
+		reqBody.Status = status
+	}
+
+	if createdAfterStr := q.Get("created_after"); createdAfterStr != "" {
+		if t, err := time.Parse(time.RFC3339, createdAfterStr); err == nil {
+			reqBody.CreatedAfter = timestamppb.New(t)
+		}
+	}
+
+	if createdBeforeStr := q.Get("created_before"); createdBeforeStr != "" {
+		if t, err := time.Parse(time.RFC3339, createdBeforeStr); err == nil {
+			reqBody.CreatedBefore = timestamppb.New(t)
+		}
+	}
+
+	if updatedAfterStr := q.Get("updated_after"); updatedAfterStr != "" {
+		if t, err := time.Parse(time.RFC3339, updatedAfterStr); err == nil {
+			reqBody.UpdatedAfter = timestamppb.New(t)
+		}
+	}
+
+	if updatedBeforeStr := q.Get("updated_before"); updatedBeforeStr != "" {
+		if t, err := time.Parse(time.RFC3339, updatedBeforeStr); err == nil {
+			reqBody.UpdatedBefore = timestamppb.New(t)
+		}
+	}
+
+	resp, err := taskClient.GetAllTasks(ctx, reqBody)
 	if err != nil {
 		handleGrpcError(w, err)
 		return
@@ -58,7 +105,7 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Task ID"
-// @Success      200  {object}  dto.CreateTaskDto
+// @Success      200  {object}  dto.CreateTaskRequest
 // @Router       /tasks/{id} [get]
 func GetById(w http.ResponseWriter, r *http.Request) {
 

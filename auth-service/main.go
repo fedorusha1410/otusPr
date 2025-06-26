@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
@@ -14,6 +15,7 @@ import (
 	"task-manager/pb"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
 
@@ -27,10 +29,11 @@ import (
 // @name Authorization
 func main() {
 
-	repository := repository.New()
+	db := connectPostgres()
+	defer db.Close()
+	repository := repository.New(db)
 
 	service := userservice.New(repository)
-	service.Restore()
 
 	err := godotenv.Load()
 	if err != nil {
@@ -45,36 +48,52 @@ func main() {
 	grpcClient := pb.NewTaskServiceClient(conn)
 
 	taskHandler.Init(grpcClient)
+	authHandler := authHandler.New(repository)
 
 	http.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(http.Dir("./docs"))))
 	http.Handle("/swagger-ui/", http.StripPrefix("/swagger-ui/", http.FileServer(http.Dir("./swagger-ui"))))
 	http.HandleFunc("/login", authHandler.Login)
+	http.HandleFunc("/signup", authHandler.Signup)
 
 	http.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+			middleware.AuthMiddleware(
+				middleware.RoleMiddleware()(
+					func(w http.ResponseWriter, r *http.Request) {
+						pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 
-			if len(pathParts) == 1 {
-				userHandler.GetAll(w, r, service)
+						if len(pathParts) == 1 {
+							userHandler.GetAll(w, r, service)
 
-			} else if len(pathParts) == 2 {
-				userHandler.GetById(w, r, service)
-			} else {
-				http.Error(w, "Invalid URL", http.StatusBadRequest)
-			}
+						} else if len(pathParts) == 2 {
+							userHandler.GetById(w, r, service)
+						} else {
+							http.Error(w, "Invalid URL", http.StatusBadRequest)
+						}
+					}),
+			)(w, r)
 		case http.MethodPost:
-			middleware.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-				userHandler.Insert(w, r, service)
-			})(w, r)
+			middleware.AuthMiddleware(
+				middleware.RoleMiddleware()(
+					func(w http.ResponseWriter, r *http.Request) {
+						userHandler.Insert(w, r, service)
+					}),
+			)(w, r)
 		case http.MethodPut:
-			middleware.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-				userHandler.Update(w, r, service)
-			})(w, r)
+			middleware.AuthMiddleware(
+				middleware.RoleMiddleware()(
+					func(w http.ResponseWriter, r *http.Request) {
+						userHandler.Update(w, r, service)
+					}),
+			)(w, r)
 		case http.MethodDelete:
-			middleware.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-				userHandler.Delete(w, r, service)
-			})(w, r)
+			middleware.AuthMiddleware(
+				middleware.RoleMiddleware()(
+					func(w http.ResponseWriter, r *http.Request) {
+						userHandler.Insert(w, r, service)
+					}),
+			)(w, r)
 		default:
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
@@ -111,4 +130,18 @@ func main() {
 	})
 
 	http.ListenAndServe(":8090", nil)
+}
+
+func connectPostgres() *sql.DB {
+
+	db, err := sql.Open("postgres", "postgres://postgres:postgres@localhost:5434/userdb?sslmode=disable")
+	if err != nil {
+		log.Fatalf("Error opening database: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Error connecting to the database: %v", err)
+	}
+
+	return db
 }
