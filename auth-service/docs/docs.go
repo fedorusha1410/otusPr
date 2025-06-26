@@ -58,6 +58,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/signup": {
+            "post": {
+                "description": "Register new user and return JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Signup",
+                "parameters": [
+                    {
+                        "description": "New user info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SignUp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/tasks/": {
             "get": {
                 "description": "Get All Tasks from file",
@@ -77,7 +126,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.CreateTaskDto"
+                                "$ref": "#/definitions/dto.CreateTaskRequest"
                             }
                         }
                     }
@@ -107,7 +156,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateTaskDto"
+                            "$ref": "#/definitions/dto.CreateTaskRequest"
                         }
                     }
                 ],
@@ -115,7 +164,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateTaskDto"
+                            "$ref": "#/definitions/dto.CreateTaskResponse"
                         }
                     },
                     "400": {
@@ -153,7 +202,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateTaskDto"
+                            "$ref": "#/definitions/dto.CreateTaskRequest"
                         }
                     }
                 }
@@ -432,7 +481,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.CreateTaskDto": {
+        "dto.CreateTaskRequest": {
+            "type": "object",
+            "properties": {
+                "Id": {
+                    "type": "integer"
+                },
+                "Note": {
+                    "type": "string"
+                },
+                "Priority": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                },
+                "authorId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateTaskResponse": {
             "type": "object",
             "properties": {
                 "Id": {
@@ -473,6 +542,17 @@ const docTemplate = `{
             }
         },
         "dto.Login": {
+            "type": "object",
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignUp": {
             "type": "object",
             "properties": {
                 "Name": {
@@ -525,17 +605,17 @@ const docTemplate = `{
         "user.User": {
             "type": "object",
             "properties": {
-                "Name": {
-                    "type": "string"
-                },
-                "Role": {
-                    "$ref": "#/definitions/user.Role"
-                },
                 "id": {
                     "type": "integer"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "password": {
                     "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/user.Role"
                 }
             }
         }

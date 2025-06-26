@@ -78,8 +78,6 @@ func (r *Repository) DeleteUser(id int) error {
 }
 
 func (r *Repository) Save(newUser *user.User) error {
-	query := `INSERT INTO users (name, role, password) VALUES ($1, $2, $3)`
-	_, err := r.db.Exec(query, newUser.Name, int(newUser.Role), newUser.Password)
-	return err
-
+	query := `INSERT INTO users (name, role, password) VALUES ($1, $2, $3) RETURNING id`
+	return r.db.QueryRow(query, newUser.Name, int(newUser.Role), newUser.Password).Scan(&newUser.Id)
 }

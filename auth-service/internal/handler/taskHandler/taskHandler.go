@@ -27,7 +27,7 @@ func Init(client pb.TaskServiceClient) {
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
-// @Success      200  {array}  dto.CreateTaskDto
+// @Success      200  {array}  dto.CreateTaskRequest
 // @Router       /tasks/ [get]
 func GetAll(w http.ResponseWriter, r *http.Request) {
 
@@ -105,7 +105,7 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Task ID"
-// @Success      200  {object}  dto.CreateTaskDto
+// @Success      200  {object}  dto.CreateTaskRequest
 // @Router       /tasks/{id} [get]
 func GetById(w http.ResponseWriter, r *http.Request) {
 
